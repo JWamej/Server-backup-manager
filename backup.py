@@ -102,8 +102,7 @@ def backup_directories(server_base_path: str, backup_base_path: str, delete_dire
 def backup_files(server_base_path: str, backup_base_path: str, delete_files: bool = False):
     data_server = os.walk(server_base_path)
     data_backup = os.walk(backup_base_path)
-    files_sizes_server = []
-    files_backup = []
+    files_spared = []
     files_delete = []
 
     # where 1st str is a path to the file on the server
@@ -116,12 +115,43 @@ def backup_files(server_base_path: str, backup_base_path: str, delete_files: boo
 
         for file_name in iteration[2]:
             files_to_backup.append((os.path.join(base_dir_server, file_name), os.path.join(base_dir_backup, file_name)))
+    print(f'files to backup: {files_to_backup}')
 
     for file in files_to_backup:
-        if os.path.exists(file[0]):
-            if not os.path.getsize(file[0]) == os.path.getsize(file[0]):
+        print(file[1])
+        if os.path.exists(file[1]):
+            if not os.path.getsize(file[0]) == os.path.getsize(file[1]):
                 os.remove(file[1])
-                shutil.copyfile()
+                shutil.copyfile(file[0], file[1])
+                print(f'Copied\n{file[0]}\nto\n{file[1]}\n')
+        else:
+            shutil.copyfile(file[0], file[1])
+
+    if delete_files:
+
+        for file in files_to_backup:
+            files_spared.append(file[1])
+
+        for iteration in data_backup:
+            for file_name in iteration[2]:
+                files_delete.append(os.path.join(iteration[0], file_name))
+
+        print(f'delete initial: {files_delete}')
+        for file in files_spared:
+            try:
+                files_delete.remove(file)
+            except ValueError:
+                pass
+
+        print(f'spared: {files_spared}')
+        print(f'delete final: {files_delete}')
+
+
+
+
+
+
+
 
 
 
@@ -180,6 +210,6 @@ class BackupCommands:
 if __name__ == '__main__':
     backup = BackupCommands(server_path=r"C:\..Server", backup_path=r"C:\..Server backup")
     # backup.general_hdd_backup()
-    # backup_directories(server_base_path=r"C:\..Server", backup_base_path=r"C:\..Server backup", delete_directories=True,
-    #                    force_delete=True)
+    backup_directories(server_base_path=r"C:\..Server", backup_base_path=r"C:\..Server backup", delete_directories=True,
+                       force_delete=True)
     backup_files(server_base_path=r"C:\..Server", backup_base_path=r"C:\..Server backup", delete_files=True)
